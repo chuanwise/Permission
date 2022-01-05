@@ -80,11 +80,11 @@ public class PermissionSystem
         return Collections.unmodifiableMap(permissionFile.getRoles());
     }
 
-    public Optional<Authorizer> getAccount(long accountCode) {
+    public Optional<Authorizer> getAuthorizer(long accountCode) {
         return MapUtil.get(permissionFile.getAuthorizers(), accountCode).toOptional();
     }
 
-    public Authorizer createAccount(long accountCode) {
+    public Authorizer createAuthorizer(long accountCode) {
         return MapUtil.getOrPutSupply(permissionFile.getAuthorizers(), accountCode, () -> {
             final Authorizer account = new Authorizer();
             account.setAuthorizerCode(accountCode);
@@ -96,7 +96,11 @@ public class PermissionSystem
         });
     }
 
-    public Map<Long, Authorizer> getAccounts() {
+    public boolean removeAuthorizer(long accountCode) {
+        return Objects.nonNull(permissionFile.getAuthorizers().remove(accountCode));
+    }
+
+    public Map<Long, Authorizer> getAuthorizers() {
         return Collections.unmodifiableMap(permissionFile.getAuthorizers());
     }
 

@@ -166,8 +166,8 @@ public class ChooseUtil extends StaticUtil {
     public static Optional<Authorizer> chooseAccount(XiaomingUser user, String input) {
         final PermissionSystem permissionSystem = PermissionPlugin.INSTANCE.getPermissionSystem();
 
-        return choose(user, input, "账号", permissionSystem.getAccounts().values(),
-                permissionSystem::getAccount,
+        return choose(user, input, "账号", permissionSystem.getAuthorizers().values(),
+                permissionSystem::getAuthorizer,
                 permissionSystem::searchAccountsByTag,
                 permissionSystem::searchAccounts);
     }

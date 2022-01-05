@@ -140,6 +140,8 @@ public class AuthorizerInteractors
 
     @Filter(Words.REMOVE + Words.ACCOUNT + Words.GLOBAL + Words.ROLE + " {账号} {角色}")
     @Filter(Words.REMOVE + Words.ACCOUNT + Words.GLOBAL + Words.GLOBAL + Words.ROLE + " {账号} {角色}")
+    @Filter(Words.REMOVE + Words.USER + Words.GLOBAL + Words.ROLE + " {账号} {角色}")
+    @Filter(Words.REMOVE + Words.USER + Words.GLOBAL + Words.GLOBAL + Words.ROLE + " {账号} {角色}")
     @Required("permission.admin.role.global.role.remove")
     public void removeAuthorizerGlobalRole(XiaomingUser user,
                                         @FilterParameter("账号") Authorizer authorizer,
@@ -187,6 +189,7 @@ public class AuthorizerInteractors
     }
 
     @Filter(Words.REMOVE + Words.ACCOUNT + Words.GROUP + Words.ROLE + " {账户} {群标签} {角色}")
+    @Filter(Words.REMOVE + Words.USER + Words.GROUP + Words.ROLE + " {账户} {群标签} {角色}")
     @Required("permission.admin.authorizer.group.{arg.群标签}.role.remove")
     public void removeAuthorizerGroupRole(XiaomingUser user,
                                        @FilterParameter("账户") Authorizer authorizer,
@@ -235,8 +238,8 @@ public class AuthorizerInteractors
         }
     }
 
-    @Filter(Words.ADD + Words.ACCOUNT + Words.GROUP + Words.PERMISSION + " {账户} {群标签} {权限节点}")
-    @Filter(Words.ADD + Words.USER + Words.GROUP + Words.PERMISSION + " {账户} {群标签} {权限节点}")
+    @Filter(Words.REMOVE + Words.ACCOUNT + Words.GROUP + Words.PERMISSION + " {账户} {群标签} {权限节点}")
+    @Filter(Words.REMOVE + Words.USER + Words.GROUP + Words.PERMISSION + " {账户} {群标签} {权限节点}")
     @Required("permission.admin.authorizer.group.{arg.群标签}.permission.remove")
     public void removeAuthorizerGroupPermission(XiaomingUser user,
                                        @FilterParameter("账户") Authorizer authorizer,
@@ -286,6 +289,7 @@ public class AuthorizerInteractors
     }
 
     @Filter(Words.REMOVE + Words.ACCOUNT + Words.THIS + Words.GROUP + Words.ROLE + " {账户} {角色}")
+    @Filter(Words.REMOVE + Words.USER + Words.THIS + Words.GROUP + Words.ROLE + " {账户} {角色}")
     @Required("permission.admin.authorizer.group.{user.groupCode}.role.remove")
     public void removeAuthorizerCurrentGroupRole(GroupXiaomingUser user,
                                           @FilterParameter("账户") Authorizer authorizer,
@@ -334,8 +338,8 @@ public class AuthorizerInteractors
         }
     }
 
-    @Filter(Words.ADD + Words.ACCOUNT + Words.THIS + Words.GROUP + Words.PERMISSION + " {账户} {权限节点}")
-    @Filter(Words.ADD + Words.USER + Words.THIS + Words.GROUP + Words.PERMISSION + " {账户} {权限节点}")
+    @Filter(Words.REMOVE + Words.ACCOUNT + Words.THIS + Words.GROUP + Words.PERMISSION + " {账户} {权限节点}")
+    @Filter(Words.REMOVE + Words.USER + Words.THIS + Words.GROUP + Words.PERMISSION + " {账户} {权限节点}")
     @Required("permission.admin.authorizer.group.{user.groupCode}.permission.remove")
     public void removeAuthorizerCurrentGroupPermission(GroupXiaomingUser user,
                                                 @FilterParameter("账户") Authorizer authorizer,

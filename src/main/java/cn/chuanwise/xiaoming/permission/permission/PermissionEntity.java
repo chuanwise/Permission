@@ -11,6 +11,7 @@ import cn.chuanwise.xiaoming.permission.object.PermissionPluginObject;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 public abstract class PermissionEntity
@@ -26,10 +27,21 @@ public abstract class PermissionEntity
     public Accessible accessibleGroup(String groupTag, Permission required) {
         ConditionUtil.checkArgument(StringUtil.notEmpty(groupTag), "group tag is empty!");
 
-        return Optional.ofNullable(groups.get(groupTag))
-                .map(scope -> scope.accessible(required, role -> role.accessibleGroup(groupTag, required)))
-                .filter(LambdaUtil.notEquals(Accessible.UNKNOWN))
-                .orElseGet(() -> accessibleGlobal(required));
+        final Optional<PermissionScope> optionalPermissionScope = Optional.ofNullable(groups.get(groupTag));
+        if (optionalPermissionScope.isPresent()) {
+            final PermissionScope groupScope = optionalPermissionScope.get();
+            final Accessible accessible = groupScope.accessible(required, x -> x.accessibleGroup(groupTag, required));
+            if (accessible != Accessible.UNKNOWN) {
+                return accessible;
+            }
+        }
+
+        final Accessible accessible = global.accessible(required, x -> x.accessibleGroup(groupTag, required));
+        if (accessible != Accessible.UNKNOWN) {
+            return accessible;
+        }
+
+        return Accessible.UNKNOWN;
     }
 
     /** 添加全局权限 */

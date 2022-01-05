@@ -86,7 +86,7 @@ public class PermissionPlugin extends JavaPlugin {
 
             @Override
             public boolean hasPermission(Account account, Permission permission) {
-                final Optional<Authorizer> optionalAuthorizer = permissionSystem.getAccount(account.getCode());
+                final Optional<Authorizer> optionalAuthorizer = permissionSystem.getAuthorizer(account.getCode());
 
                 if (optionalAuthorizer.isPresent()) {
                     final Authorizer authorizer = optionalAuthorizer.get();
@@ -116,7 +116,7 @@ public class PermissionPlugin extends JavaPlugin {
 
             @Override
             public boolean hasPermission(Account account, GroupInformation groupInformation, Permission permission) {
-                final Optional<Authorizer> optionalAuthorizer = permissionSystem.getAccount(account.getCode());
+                final Optional<Authorizer> optionalAuthorizer = permissionSystem.getAuthorizer(account.getCode());
 
                 final Set<String> tags = groupInformation.getTags();
                 if (optionalAuthorizer.isPresent()) {

@@ -38,7 +38,7 @@ public class PermissionInteractors
             final Optional<Long> optionalCode = AtUtil.parseAt(inputValue);
             if (optionalCode.isPresent()) {
                 final long accountCode = optionalCode.get();
-                return Container.of(permissionSystem.createAccount(accountCode));
+                return Container.of(permissionSystem.createAuthorizer(accountCode));
             }
 
             return Container.ofOptional(ChooseUtil.chooseAccount(context.getUser(), inputValue));
@@ -57,7 +57,39 @@ public class PermissionInteractors
         }, true, plugin);
     }
 
+    @Filter(Words.RESET + Words.ACCOUNT + Words.PERMISSION + " {qq}")
+    @Filter(Words.RESET + Words.USER + Words.PERMISSION + " {qq}")
+    @Required("permission.admin.account.reset")
+    public void resetAccountPermission(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final String aliasAndCode = xiaomingBot.getAccountManager().getAliasAndCode(qq);
+        if (permissionSystem.removeAuthorizer(qq)) {
+            user.sendMessage("成功重置用户「" + aliasAndCode + "」的权限信息");
+        } else {
+            user.sendMessage("用户「" + aliasAndCode + "」的权限信息尚未被特化，无需重置");
+        }
+    }
+
+    @Filter(Words.ACCOUNT + Words.DEFAULT + Words.ROLE + " {qq}")
+    @Filter(Words.USER + Words.DEFAULT + Words.ROLE + " {qq}")
+    @Required("permission.admin.account.defaultRoles")
+    public void listAccountDefaultRoles(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final String aliasAndCode = xiaomingBot.getAccountManager().getAliasAndCode(qq);
+        final Optional<Authorizer> authorizer = permissionSystem.getAuthorizer(qq);
+
+        user.sendMessage("「用户默认角色」\n" +
+                CollectionUtil.toIndexString(permissionSystem.getAccountDefaultRoles(qq), Role::getSimpleDescription) +
+                authorizer.map(x -> "\n（但用户权限已特化）").orElse(""));
+    }
+
     /** 其他操作 */
+    @Filter(Words.SET + Words.DEFAULT + Words.ROLE + " {角色}")
+    @Filter(Words.SET + Words.GLOBAL + Words.DEFAULT + Words.ROLE + " {角色}")
+    @Required("permission.admin.role.globalDefault.set")
+    public void setGlobalDefaultRole(XiaomingUser user, @FilterParameter("角色") Role role) {
+        configuration.setGlobalDefaultRoleCode(role.getRoleCode());
+        user.sendMessage("成功设置角色" + role.getSimpleDescription() + "为全局默认角色");
+    }
+
     @Filter(Words.SET + Words.GROUP + Words.DEFAULT + Words.ROLE + " {群标签} {角色}")
     @Required("permission.admin.role.groupDefault.set")
     public void setGroupDefaultRole(XiaomingUser user,

@@ -74,8 +74,8 @@ public class RoleInteractors
     public void addRole(XiaomingUser user, @FilterParameter("角色名") String name) {
         final Role role = new Role();
         role.setName(name);
-        final boolean parentRoleAdded = role.assignGlobalParentRole(user.getCode(), configuration.getGlobalDefaultRoleCode());
         permissionSystem.addRole(user.getCode(), role);
+        final boolean parentRoleAdded = role.assignGlobalParentRole(xiaomingBot.getCode(), configuration.getGlobalDefaultRoleCode());
         permissionSystem.readyToSave();
 
         if (parentRoleAdded) {
@@ -161,8 +161,9 @@ public class RoleInteractors
         }
     }
 
-    @Filter(Words.ROLE + " {子角色} " + Words.GLOBAL + Words.EXTENDS + " {父角色}")
-    @Filter(Words.ADD + Words.ROLE + Words.GLOBAL + Words.ROLE + " {父角色}")
+    @Filter(Words.ROLE + " {子角色} " + Words.GLOBAL + Words.INHERIT + " {父角色}")
+    @Filter(Words.ROLE + " {父角色} " + Words.GLOBAL + Words.EXTENDS + " {子角色}")
+    @Filter(Words.ADD + Words.ROLE + Words.GLOBAL + Words.ROLE + " {子角色} {父角色}")
     @Required("permission.admin.role.global.role.add")
     public void addRoleGlobalRole(XiaomingUser user,
                                   @FilterParameter("父角色") Role parentRole,
@@ -176,8 +177,9 @@ public class RoleInteractors
         }
     }
 
-    @Filter(Words.REMOVE + Words.ROLE + " {子角色} " + Words.GLOBAL + Words.EXTENDS + " {父角色}")
-    @Filter(Words.REMOVE + Words.ROLE + Words.GLOBAL + Words.ROLE + " {父角色}")
+    @Filter(Words.REMOVE + Words.ROLE + " {子角色} " + Words.GLOBAL + Words.INHERIT + " {父角色}")
+    @Filter(Words.REMOVE + Words.ROLE + " {父角色} " + Words.GLOBAL + Words.EXTENDS + " {子角色}")
+    @Filter(Words.REMOVE + Words.ROLE + Words.GLOBAL + Words.ROLE + " {父角色} {子角色}")
     @Required("permission.admin.role.global.role.remove")
     public void removeRoleGlobalRole(XiaomingUser user,
                                      @FilterParameter("父角色") Role parentRole,
@@ -322,6 +324,96 @@ public class RoleInteractors
             user.sendError("令角色 " + childRole.getSimpleDescription() + " 在群 %" + groupTag + " 中继承自角色 " + parentRole.getSimpleDescription() + " 失败，可能是它们已经具备继承派生关系");
         }
     }
+
+    /** 角色和本群 */
+    /** 角色和群权限 */
+    @Filter(Words.ADD + Words.ROLE + Words.THIS + Words.GROUP + Words.PERMISSION + " {角色} {权限节点}")
+    @Required("permission.admin.role.group.{user.groupCode}.permission.add")
+    public void addRoleGroupPermission(GroupXiaomingUser user,
+                                       @FilterParameter("角色") Role role,
+                                       @FilterParameter("权限节点") Permission permission) {
+        final String groupTag = user.getGroupCodeString();
+        if (role.grantGroupPermission(user.getCode(), groupTag, permission)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功授予角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission);
+        } else {
+            user.sendError("授予角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission + " 失败，可能是该角色在这个群中已具备该权限");
+        }
+    }
+
+    @Filter(Words.ADD + Words.ROLE + Words.THIS + Words.GROUP + Words.PERMISSION + " {角色} {顺序} {权限节点}")
+    @Required("permission.admin.role.group.{user.groupCode}.permission.remove")
+    public void addRoleGroupPermission(GroupXiaomingUser user,
+                                       @FilterParameter("角色") Role role,
+                                       @FilterParameter("顺序") int position,
+                                       @FilterParameter("权限节点") Permission permission) {
+        final String groupTag = user.getGroupCodeString();
+        if (role.grantGroupPermission(user.getCode(), groupTag, position, permission)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功授予角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission + "，顺序为 " + position);
+        } else {
+            user.sendError("授予角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission + " 失败，可能是顺序错误或该角色在这个群中已具备该权限");
+        }
+    }
+
+    @Filter(Words.REMOVE + Words.ROLE + Words.THIS + Words.GROUP + Words.PERMISSION + " {角色} {权限节点}")
+    @Required("permission.admin.role.group.{user.groupCode}.permission.remove")
+    public void removeRoleGroupPermission(GroupXiaomingUser user,
+                                          @FilterParameter("角色") Role role,
+                                          @FilterParameter("权限节点") Permission permission) {
+        final String groupTag = user.getGroupCodeString();
+        if (role.dismissGroupPermission(user.getCode(), groupTag, permission)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功删除角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission);
+        } else {
+            user.sendError("删除角色 " + role.getSimpleDescription() + " 在本群中的权限：" + permission + " 失败，可能是该角色在这个群并没有此权限");
+        }
+    }
+
+    /** 角色和群角色 */
+    @Filter(Words.ADD + Words.ROLE + Words.THIS + Words.GROUP + Words.ROLE + " {子角色} {父角色}")
+    @Required("permission.admin.role.group.{user.groupCode}.role.add")
+    public void addRoleGroupRole(GroupXiaomingUser user,
+                                 @FilterParameter("子角色") Role childRole,
+                                 @FilterParameter("父角色") Role parentRole) {
+        final String groupTag = user.getGroupCodeString();
+        if (childRole.assignGroupParentRole(user.getCode(), groupTag, parentRole)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription());
+        } else {
+            user.sendError("令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription() + " 失败，可能是它们已经具备继承派生关系");
+        }
+    }
+
+    @Filter(Words.ADD + Words.ROLE + Words.THIS + Words.GROUP + Words.ROLE + " {子角色} {顺序} {父角色}")
+    @Required("permission.admin.role.group.{user.groupCode}.role.add")
+    public void addRoleGroupRole(GroupXiaomingUser user,
+                                 @FilterParameter("子角色") Role childRole,
+                                 @FilterParameter("顺序") int position,
+                                 @FilterParameter("父角色") Role parentRole) {
+        final String groupTag = user.getGroupCodeString();
+        if (childRole.assignGroupParentRole(user.getCode(), groupTag, position, parentRole)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription() + "，顺序为 " + position);
+        } else {
+            user.sendError("令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription() + " 失败，可能是顺序错误或它们已经具备继承派生关系");
+        }
+    }
+
+    @Filter(Words.REMOVE + Words.ROLE + Words.THIS + Words.GROUP + Words.ROLE + " {子角色} {父角色}")
+    @Required("permission.admin.role.group.{user.groupCode}.role.remove")
+    public void removeRoleGroupRole(GroupXiaomingUser user,
+                                    @FilterParameter("子角色") Role childRole,
+                                    @FilterParameter("父角色") Role parentRole) {
+        final String groupTag = user.getGroupCodeString();
+        if (childRole.assignGroupParentRole(user.getCode(), groupTag, parentRole)) {
+            permissionSystem.readyToSave();
+            user.sendMessage("成功令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription());
+        } else {
+            user.sendError("令角色 " + childRole.getSimpleDescription() + " 在本群中继承自角色 " + parentRole.getSimpleDescription() + " 失败，可能是它们已经具备继承派生关系");
+        }
+    }
+
 
     /** 测试权限 */
     @Filter(Words.TEST + Words.ROLE + Words.PERMISSION + " {角色} {r:权限}")
