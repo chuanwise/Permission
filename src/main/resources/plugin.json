@@ -1,0 +1,6 @@
+{
+  "name": "Permission",
+  "main": "cn.chuanwise.xiaoming.permission.PermissionPlugin",
+  "version": "2.4-SNAPSHOT",
+  "author": "Chuanwise"
+}
